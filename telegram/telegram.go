@@ -1,8 +1,14 @@
 package telegram
 
 import (
+	"errors"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	log "github.com/sirupsen/logrus"
+)
+
+var (
+	ErrChannelNotFound = errors.New("channel not found")
 )
 
 type Channel struct {
@@ -26,6 +32,10 @@ func NewTelegram(channels []Channel) *Telegram {
 }
 
 func (t *Telegram) SendMessage(channelName string, messages []string) error {
+	if _, ok := t.bots[channelName]; !ok {
+		return ErrChannelNotFound
+	}
+
 	alertBot, err := tgbotapi.NewBotAPI(t.bots[channelName].Token)
 	if err != nil {
 		log.Println("SendAlertMessage failed at NewBotAPI ", err)
