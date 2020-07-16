@@ -5,14 +5,28 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const (
-	chatID              = int64(1057858355)
-	alertToken          = "1248026431:AAF6ZzklChI5zeP2_-9CzGjWOt_QVfXGSzw"
-	riskManagementToken = "1360876104:AAGpFNzUWNWL0eGxLO4LQYqwhU_jy3WfXq4"
-)
+type Channel struct {
+	Name   string
+	ChatID int64
+	Token  string
+}
 
-func SendAlertMessage(messages []string) error {
-	alertBot, err := tgbotapi.NewBotAPI(alertToken)
+type Telegram struct {
+	bots map[string]Channel
+}
+
+func NewTelegram(channels []Channel) *Telegram {
+	t := &Telegram{
+		bots: map[string]Channel{},
+	}
+	for i := 0; i < len(channels); i++ {
+		t.bots[channels[i].Name] = channels[i]
+	}
+	return t
+}
+
+func (t *Telegram) SendMessage(channelName string, messages []string) error {
+	alertBot, err := tgbotapi.NewBotAPI(t.bots[channelName].Token)
 	if err != nil {
 		log.Println("SendAlertMessage failed at NewBotAPI ", err)
 		return err
@@ -23,29 +37,9 @@ func SendAlertMessage(messages []string) error {
 		resMessage = resMessage + message + "\n"
 	}
 
-	_, err = alertBot.Send(tgbotapi.NewMessage(chatID, resMessage))
+	_, err = alertBot.Send(tgbotapi.NewMessage(t.bots[channelName].ChatID, resMessage))
 	if err != nil {
 		log.Println("SendAlertMessage failed at Send ", err)
-		return err
-	}
-	return nil
-}
-
-func SendRiskManagementMessage(messages []string) error {
-	alertBot, err := tgbotapi.NewBotAPI(riskManagementToken)
-	if err != nil {
-		log.Println("SendRiskManagementMessage failed at NewBotAPI ", err)
-		return err
-	}
-
-	resMessage := ""
-	for _, message := range messages {
-		resMessage = resMessage + message + "\n"
-	}
-
-	_, err = alertBot.Send(tgbotapi.NewMessage(chatID, resMessage))
-	if err != nil {
-		log.Println("SendRiskManagementMessage failed at Send ", err)
 		return err
 	}
 	return nil
