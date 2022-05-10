@@ -21,6 +21,7 @@ type Telegram struct {
 	bots map[string]Channel
 }
 
+//NewTelegram channel name 隨便填
 func NewTelegram(channels []Channel) *Telegram {
 	t := &Telegram{
 		bots: map[string]Channel{},
