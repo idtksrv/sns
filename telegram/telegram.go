@@ -12,16 +12,17 @@ var (
 )
 
 type Channel struct {
-	Name   string
-	ChatID int64
-	Token  string
+	Name             string
+	ChatID           int64
+	Token            string
+	ReplyToMessageID int // 指定子頻道的 message_thread_id
 }
 
 type Telegram struct {
 	bots map[string]Channel
 }
 
-//NewTelegram channel name 隨便填
+// NewTelegram channel name 隨便填
 func NewTelegram(channels []Channel) *Telegram {
 	t := &Telegram{
 		bots: map[string]Channel{},
@@ -48,7 +49,9 @@ func (t *Telegram) SendMessage(channelName string, messages []string) error {
 		resMessage = resMessage + message + "\n"
 	}
 
-	_, err = alertBot.Send(tgbotapi.NewMessage(t.bots[channelName].ChatID, resMessage))
+	msg := tgbotapi.NewMessage(t.bots[channelName].ChatID, resMessage)
+	msg.ReplyToMessageID = t.bots[channelName].ReplyToMessageID // 指定子頻道的 message_thread_id
+	_, err = alertBot.Send(msg)
 	if err != nil {
 		log.Println("SendAlertMessage failed at Send ", err)
 		return err
